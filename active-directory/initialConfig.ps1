@@ -1,7 +1,6 @@
 <#
 .SYNOPSIS
     Configures and intalls active directory for lab migration
-
 .NOTES
     Author: Kennet Morales
     Created: April 25, 2024
@@ -9,12 +8,12 @@
 #>
 
 # Variables
-$pcName = Read-Host "Enter server name: "
+$hostname = Read-Host "Enter server name: "
 
-$netProfile = Get-NetConnectionProfile
+$intInfo = Get-NetConnectionProfile
 
-$netConfig = @{
-    InterfaceIndex = $netProfile.InterfaceIndex
+$staticConfig = @{
+    InterfaceIndex = $intInfo.InterfaceIndex
     IPAddress = ""
     PrefixLenght = ""
     DefaultGateway = ""
@@ -22,19 +21,28 @@ $netConfig = @{
     Verbose = $true
 }
 
-$AD = @{
+$dnsServers = @{
+    ServerAddresses = @(
+        "A.B.C.D"
+        "A.B.C.D"
+        "A.B.C.D"
+    )
+}
+
+$ADDS = @{
     Name = "AD-Domain-Services"
-    IncludeManagementTools = $true
+    # IncludeManagementTools = $true
 }
 
 $ADForest = @{
 
 }
 
-# Prep work
-New-NetIPAddress @netConfig
-Rename-Computer -NewName $pcName -Confirm:$false -Force -ErrorAction Continue
+# pre-req server config
+New-NetIPAddress @staticConfig
+Rename-Computer -NewName $hostname -Confirm:$false -Force -ErrorAction Continue
+Set-DnsClientServerAddress -ServerAddresses @dnsServers
 
 # Install services plus initial forest creation
-Install-WindowsFeature @AD
+Install-WindowsFeature @ADDS
 Install-ADDSForest
