@@ -8,9 +8,11 @@
 
 Import-Module ActiveDirectory
 
+$credential = Get-Credential
+
 try {
     $userSearch = Read-Host "Enter User"
-    $userProperties = Get-ADUser -Identity $userSearch -Server $env:ADServer -Properties * -ErrorAction Stop 
+    $userProperties = Get-ADUser -Identity $userSearch -Server $env:ADServer -Properties * -Credential $credential -ErrorAction Stop 
     $userSamAccountName = $userProperties.SamAccountName
     $userDisplayName = $userProperties.DisplayName
     $userPrincipalName = $userProperties.UserPrincipalName
@@ -33,7 +35,7 @@ try {
     if($confirmation -eq 'Y'){
         Write-Output "Starting credential reset for specified user"
         $tempPasswd = ConvertTo-SecureString -AsPlainText "Temp123!?" -Force # change depending on complexity requirements
-        Set-ADAccountPassword -Identity $userSamAccountName -Server $env:ADServer -NewPassword $tempPasswd -Reset -ErrorAction Stop
+        Set-ADAccountPassword -Identity $userSamAccountName -Server $env:ADServer -NewPassword $tempPasswd -Reset -Credential $credential -ErrorAction Stop
         Write-Output "Successfully reset user credentials"
         Write-Output "Temporary Password: $(ConvertFrom-SecureString -SecureString $tempPasswd -AsPlainText)"
     }
